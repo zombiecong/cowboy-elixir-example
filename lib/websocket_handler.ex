@@ -10,8 +10,13 @@ defmodule WebsocketHandler do
   # then add the same header to `req` with value containing
   # supported protocol(s).
   def init(req, state) do
-    :erlang.start_timer(1000, self(), [])
     {:cowboy_websocket, req, state}
+  end
+
+
+  def websocket_init(state) do
+    :erlang.start_timer(1000, self(), 'haha')
+    {:ok , state}
   end
 
   # Put any essential clean-up here.
@@ -57,6 +62,7 @@ defmodule WebsocketHandler do
     time = time_as_string()
 
     # encode a json reply in the variable 'message'
+
     { :ok, message } = JSX.encode(%{ time: time})
 
     # set a new timer to send a :timeout message back to this

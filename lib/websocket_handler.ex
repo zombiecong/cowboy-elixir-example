@@ -10,7 +10,7 @@ defmodule WebsocketHandler do
   # then add the same header to `req` with value containing
   # supported protocol(s).
   def init(req, state) do
-    :erlang.start_timer(1000, self, [])
+    :erlang.start_timer(1000, self(), [])
     {:cowboy_websocket, req, state}
   end
 
@@ -22,27 +22,27 @@ defmodule WebsocketHandler do
   # websocket_handle deals with messages coming in over the websocket,
   # including text, binary, ping or pong messages. But you need not
   # handle ping/pong, cowboy takes care of that.
-  def websocket_handle({:text, content}, req, state) do
+  def websocket_handle({:text, content}, state) do
 
     # Use JSEX to decode the JSON message and extract the word entered
     # by the user into the variable 'message'.
-    { :ok, %{ "message" => message} } = JSEX.decode(content)
+    { :ok, %{ "message" => message} } = JSX.decode(content)
 
     # Reverse the message and use JSEX to re-encode a reply contatining
     # the reversed message.
     rev = String.reverse(message)
-    { :ok, reply } = JSEX.encode(%{ reply: rev})
+    { :ok, reply } = JSX.encode(%{ reply: rev})
 
     # All websocket callbacks share the same return values.
     # See http://ninenines.eu/docs/en/cowboy/2.0/manual/cowboy_websocket/
-    {:reply, {:text, reply}, req, state}
+    {:reply, {:text, reply}, state}
   end
 
   # Fallback clause for websocket_handle.  If the previous one does not match
   # this one just ignores the frame and returns `{:ok, state}` without
   # taking any action. A proper app should  probably intelligently handle
   # unexpected messages.
-  def websocket_handle(_frame, _req, state) do
+  def websocket_handle(_frame, state) do
     {:ok, state}
   end
 
@@ -52,27 +52,27 @@ defmodule WebsocketHandler do
   #
   # In a larger app various clauses of websocket_info might handle all kinds
   # of messages and pass information out the websocket to the client.
-  def websocket_info({_timeout, _ref, _msg}, req, state) do
+  def websocket_info({_timeout, _ref, _msg}, state) do
 
     time = time_as_string()
 
     # encode a json reply in the variable 'message'
-    { :ok, message } = JSEX.encode(%{ time: time})
+    { :ok, message } = JSX.encode(%{ time: time})
 
     # set a new timer to send a :timeout message back to this
     # process a second from now. This will recursively call
     # this handler, acting as a tick.
-    :erlang.start_timer(1000, self, [])
+    :erlang.start_timer(1000, self(), [])
 
     # send the new message to the client. Note that even though there was no
     # incoming message from the client, we still call the outbound message
     # a 'reply'.  That makes the format for outbound websocket messages
     # exactly the same as websocket_handle()
-    { :reply, {:text, message}, req, state}
+    { :reply, {:text, message}, state}
   end
 
   # fallback message handler
-  def websocket_info(_info, _req, state) do
+  def websocket_info(_info, state) do
     {:ok, state}
   end
 

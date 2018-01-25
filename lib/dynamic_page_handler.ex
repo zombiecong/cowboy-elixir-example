@@ -40,7 +40,7 @@ defmodule DynamicPageHandler do
       200,
 
       # headers
-      [ {"content-type", "text/html"} ],
+      %{"content-type" => "text/html"},
 
       # body of reply.
       build_body(request),

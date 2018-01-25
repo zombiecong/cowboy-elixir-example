@@ -19,11 +19,10 @@ defmodule CowboyElixirExample do
   SEE ALSO: http://ninenines.eu/docs/en/cowboy/1.0/guide/getting_started/
   """
   def start(_type, _args) do
-    dispatch_config = build_dispatch_config
-    { :ok, _ } = :cowboy.start_http(:http,
-                                    100,
+    dispatch_config = build_dispatch_config()
+    { :ok, _ } = :cowboy.start_clear(:http,
                                    [{:port, 8080}],
-                                   [{ :env, [{:dispatch, dispatch_config}]}]
+                                   %{ :env => %{:dispatch => dispatch_config}}
                                    )
 
   end
